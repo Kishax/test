@@ -1,0 +1,23 @@
+name: Trigger Parent Repo
+
+on:
+  push:
+    branches:
+      - main # masterブランチの場合もあります
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    steps:
+      - name: Trigger repository_dispatch in Kishax/infrastructure
+        run: |
+          curl -X POST \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.PARENT_REPO_PAT }}" \
+          https://api.github.com/repos/Kishax/infrastructure/dispatches \
+          -d '{"event_type":"update-submodule-from-B"}'
